@@ -1,5 +1,5 @@
 {
-  "name": "@the_gost_sniper/typescript_template",
+  "name": "@arffornia/nexus_java",
   "version": "1.0.0",
   "scripts": {
     "test": "jest",
@@ -16,14 +16,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/TheGostsniperfr/Typescript_Template.git"
+    "url": "git+https://github.com/Arffornia/Nexus_Java.git"
   },
   "author": "TheGostsniperfr",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/TheGostsniperfr/Typescript_Template/issues"
+    "url": "https://github.com/Arffornia/Nexus_Java/issues"
   },
-  "homepage": "https://github.com/TheGostsniperfr/Typescript_Template#readme",
+  "homepage": "https://github.com/Arffornia/Nexus_Java#readme",
   "description": "",
   "devDependencies": {
     "@types/jest": "^29.5.12",
