@@ -1,0 +1,37 @@
+{
+  "name": "@the_gost_sniper/typescript_template",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "jest",
+    "build": "tsc && tsc-alias"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheGostsniperfr/Typescript_Template.git"
+  },
+  "author": "TheGostsniperfr",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TheGostsniperfr/Typescript_Template/issues"
+  },
+  "homepage": "https://github.com/TheGostsniperfr/Typescript_Template#readme",
+  "description": "",
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^22.2.0",
+    "axios": "^1.7.3",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.4",
+    "tsc-alias": "^1.8.10",
+    "typescript": "^5.5.4"
+  }
+}
