@@ -2,11 +2,13 @@ import axios from 'axios';
 import { URL } from 'url';
 import { JavaVersionInfo } from './JavaVersionInfo';
 import packageInfo from './../package.json';
+import { OsType } from './distribution/OsType';
 
 export class AzulApiRequest {
     private static readonly AZUL_ENDPOINT = 'https://api.azul.com/metadata/v1/zulu/packages/';
     private readonly javaVersionInfo: JavaVersionInfo;
     private archiveUrl!: URL;
+    private archiveFullName!: string;
     private javaHomeDirName!: string;
 
     private constructor(javaVersionInfo: JavaVersionInfo) {
@@ -25,8 +27,10 @@ export class AzulApiRequest {
             throw new Error('No response from the API');
         }
 
-        const javaVersion = response[0];
+        const javaVersion = response[ 0 ];
         this.archiveUrl = new URL(javaVersion.download_url);
+
+        this.archiveFullName = javaVersion.name;
 
         this.javaHomeDirName = javaVersion.name.replace(
             `.${this.javaVersionInfo.getArchiveType()}`,
@@ -78,6 +82,15 @@ export class AzulApiRequest {
 
     public getArchiveUrl(): URL {
         return this.archiveUrl;
+    }
+
+    public getArchiveName() {
+        return this.archiveFullName.replace(
+            `.${this.javaVersionInfo.getArchiveType()}`, "");
+    }
+
+    public getArchiveFullName() {
+        return this.archiveFullName;
     }
 
     public getJavaHomeDirName(): string {

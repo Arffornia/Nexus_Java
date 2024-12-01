@@ -17,8 +17,8 @@ npm i @arffornia/nexus_java
 ### Windows example :
 
 ```ts
-NexusJava nexusJava = new NexusJava(
-                installPath, new NexusJavaInfo(
+const nexusJava = new NexusJava(
+                installPath, new JavaVersionInfo(
                         "17",                       // Java version
                         JavaType.JRE,               // Java type
                         OsType.WINDOWS,             // Os type
@@ -34,8 +34,8 @@ console.log("Java home dir path is " + javaDirPath);
 ### Linux example :
 
 ```ts
-NexusJava nexusJava = new NexusJava(
-                installPath, new NexusJavaInfo(
+const nexusJava = new NexusJava(
+                installPath, new JavaVersionInfo(
                         "11",                       // Java version
                         JavaType.JDK,               // Java type
                         OsType.LINUX,               // Os type
