@@ -79,7 +79,9 @@ export class NexusJava {
         this.callback?.onStep(Step.DONE);
 
         // Return the absolute path to the extracted Java directory
-        return path.resolve(this.installPath, apiRequest.getJavaHomeDirName());
+        return path.resolve(this.getJavaInstallDirName(), 
+            "bin", 
+            `java ${this.javaVersionInfo.getOsType() == OsType.LINUX ? "" : ".exe"}`);
     }
 
     public isJavaInstalled(): boolean {
