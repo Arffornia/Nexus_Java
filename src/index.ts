@@ -1,2 +1,7 @@
-// List here the functions/classes that need to be visible to other packages
-// export * from './NexusConfig'; // This is an example
+export * from './distribution/ArchType';
+export * from './distribution/JavaType';
+export * from './distribution/OsType';
+
+export * from './AzulApiRequest'
+export * from './Callback'
+export * from './JavaVersionInfo'

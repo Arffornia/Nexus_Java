@@ -1,4 +1,4 @@
-export enum JavaType {
+export enum ArchType {
     X86 = "x86",
     X64 = "x64",
     AMD64 = "amd64",
