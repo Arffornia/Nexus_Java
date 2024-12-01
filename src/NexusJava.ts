@@ -79,9 +79,7 @@ export class NexusJava {
         this.callback?.onStep(Step.DONE);
 
         // Return the absolute path to the extracted Java directory
-        return path.resolve(this.getJavaInstallDirName(), 
-            "bin", 
-            `java ${this.javaVersionInfo.getOsType() == OsType.LINUX ? "" : ".exe"}`);
+        return this.getJavaPath();
     }
 
     public isJavaInstalled(): boolean {
@@ -112,6 +110,12 @@ export class NexusJava {
         }
 
         return true;
+    }
+
+    public getJavaPath(): string {
+        return path.resolve(this.getJavaInstallDirName(),
+            "bin",
+            `java${this.javaVersionInfo.getOsType() == OsType.LINUX ? "" : ".exe"}`);
     }
 
     // Generate the path for the standart archive name

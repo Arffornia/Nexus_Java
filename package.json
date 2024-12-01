@@ -1,12 +1,12 @@
 {
   "name": "@arffornia/nexus_java",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "scripts": {
     "test": "jest",
     "build": "tsc && tsc-alias"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "files": [
     "dist",
     "README.md"
