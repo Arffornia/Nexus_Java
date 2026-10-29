@@ -60,8 +60,12 @@ None. Everything is passed to the constructor. No environment variables are read
 
 ## Release process
 
-Releases are done by the maintainer: bump `version` in `package.json` in a PR, merge, then publish the merged
-commit to npm and tag it `v<version>`. Contributors never publish.
+Releases are done by the maintainer; contributors never publish.
+
+1. Bump `version` in `package.json` (and the lockfile: `npm version <x.y.z> --no-git-tag-version`) in a PR, merge it.
+2. Tag the merge commit on `main` and push the tag: `git tag v<x.y.z> && git push origin v<x.y.z>`.
+3. `.github/workflows/publish.yml` checks that the tag matches `package.json`, runs `make check` and runs
+   `npm publish --provenance`. It needs the repository secret `NPM_TOKEN`.
 
 ## License
 
