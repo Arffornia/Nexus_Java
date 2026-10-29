@@ -54,7 +54,8 @@ make build      # tsc && tsc-alias -> dist/
 
 ## Gotchas (from the 2026-10-29 audit)
 
-- `axios` is imported at runtime but declared as a devDependency (issue: declare it as a dependency).
+- Every package imported from `src/` must be in `dependencies` (axios was once dev-only and worked only because the
+  launcher installs it).
 - No checksum on the downloaded archive, and a partial archive is reused because only existence is checked.
   Azul's package detail endpoint returns `sha256_hash`.
 - `isJavaInstalled()` builds a shell command without quoting (breaks with spaces in the path).
