@@ -1,63 +1,68 @@
 # Nexus Java
 
-This package lets you download and manage multiple Java installations.
+`@arffornia/nexus_java` downloads and installs a Java runtime (JRE or JDK) from [Azul Zulu](https://www.azul.com/downloads/)
+for a given version, OS and CPU architecture, and tells you where the `java` binary is.
+It is part of the Arffornia ecosystem: the [Arffornia launcher](https://github.com/Arffornia/Arffornia_Launcher_V.5.2)
+uses it to install the Java 21 runtime that Minecraft needs. Architecture docs (coming soon): https://arffornia.github.io/docs/
 
-Download Java from `azul.com`.
+## Requirements
 
-## Install :
+- Node.js 22 (the package targets modern Node; CI runs on 22)
+- Network access to `api.azul.com` and `cdn.azul.com` at runtime
 
-To include Typescript Template in your project, you can install it using npm:
+## Install
 
 ```bash
 npm i @arffornia/nexus_java
 ```
 
-## Usage :
-
-### Windows example :
+## Usage
 
 ```ts
+import { NexusJava, JavaVersionInfo, JavaType, OsType, ArchType, Step } from '@arffornia/nexus_java';
+
 const nexusJava = new NexusJava(
-                installPath, new JavaVersionInfo(
-                        "17",                       // Java version
-                        JavaType.JRE,               // Java type
-                        OsType.WINDOWS,             // Os type
-                        ArchType.X64,               // Arch type
-                        true),                      // With JavaFx
-                        null,                       // Callback function
-                        false);                     // Delete archive finished
+    './java',                        // install directory (created if missing)
+    new JavaVersionInfo(
+        '21',                        // Java major version
+        JavaType.JRE,                // JRE or JDK
+        OsType.WINDOWS,              // target OS
+        ArchType.X64,                // target architecture
+        false),                      // bundle JavaFX
+    { onStep: (step: Step) => console.log(step) }, // progress callback, or null
+    true);                           // delete the archive once extracted
 
-const javaDirPath = nexusJava.downloadAndExtract();
-console.log("Java home dir path is " + javaDirPath);
+if (!nexusJava.isJavaInstalled()) {
+    await nexusJava.downloadAndExtract();
+}
+console.log('java binary: ' + nexusJava.getJavaPath());
 ```
 
-### Linux example :
+- `downloadAndExtract()` queries the Azul metadata API, downloads the archive (`.zip` on Windows, `.tar.gz` elsewhere),
+  extracts it to `<installPath>/java_<version>` and resolves with the path of the `java` binary.
+- `isJavaInstalled()` checks that the binary exists and that `java --version` reports the requested major version.
+- `getJavaPath()` returns the absolute path of the `java` binary (it does not check that it exists).
+- Progress steps: `FETCHING`, `DOWNLOADING`, `EXTRACTING`, `CLEANING`, `DONE`.
+- `AzulApiRequest`, `JavaVersionInfo` and the `OsType` / `ArchType` / `JavaType` enums are exported too.
 
-```ts
-const nexusJava = new NexusJava(
-                installPath, new JavaVersionInfo(
-                        "11",                       // Java version
-                        JavaType.JDK,               // Java type
-                        OsType.LINUX,               // Os type
-                        ArchType.AMD64,             // Arch type
-                        false),                     // With JavaFx
-                        null,                       // Callback function
-                        true);                      // Delete archive finished
+## Commands
 
-Path javaDirPath = nexusJava.downloadAndExtract();
-comsole.log("Java home dir path is " + javaDirPath);
-```
+| Command | What it does |
+|---|---|
+| `npm ci` | Install the exact dependency tree from `package-lock.json` |
+| `make check` | Type-check, run the tests, build (what CI runs) |
+| `make test` / `npm test` | Run the Jest tests (offline: Azul is mocked) |
+| `make build` / `npm run build` | Compile to `dist/` (`tsc` + `tsc-alias`) |
 
-## Tests
+## Configuration
 
-Tests are managed by **Jest**
+None. Everything is passed to the constructor. No environment variables are read.
 
-You can run the tests using :
+## Release process
 
-```bash
-npm test
-```
+Releases are done by the maintainer: bump `version` in `package.json` in a PR, merge, then publish the merged
+commit to npm and tag it `v<version>`. Contributors never publish.
 
 ## License
 
-This project is licensed under the MIT licence. You can consult the complete text of the licence in the file [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE).
