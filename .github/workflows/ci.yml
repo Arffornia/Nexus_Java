@@ -9,6 +9,24 @@ permissions:
   contents: read
 
 jobs:
+  # Same checks on an Apple Silicon runner: macOS paths and temp dirs, the case-insensitive
+  # file system and BSD tools. `check` keeps its name so required checks do not change.
+  check-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check, test, build
+        run: make check
+
   check:
     runs-on: ubuntu-latest
     steps:
