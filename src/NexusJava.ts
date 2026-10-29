@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { pipeline } from 'stream/promises';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import AdmZip from 'adm-zip';
 import { extract } from 'tar';
 import { JavaVersionInfo } from './JavaVersionInfo';
@@ -120,23 +120,16 @@ export class NexusJava {
     }
 
     public isJavaInstalled(): boolean {
-        const javaBinDir = path.join(this.getJavaInstallDirName(), "bin");
+        const javaExecutable = this.getJavaPath();
 
-        // Check the java bin dir exists
-        if (!fs.existsSync(javaBinDir)) {
-            return false;
-        }
-
-        // Check if the java executable
-        const javaExecutable = path.join(javaBinDir,
-            this.javaVersionInfo.getOsType() == OsType.LINUX ? 'java' : 'java.exe');
-
+        // Check the java executable exists
         if (!fs.existsSync(javaExecutable)) {
             return false;
         }
 
         try {
-            const javaVersion = execSync(`${javaExecutable} --version`, { stdio: 'pipe' }).toString();
+            // execFileSync runs the binary directly (no shell), so paths with spaces work
+            const javaVersion = execFileSync(javaExecutable, ['--version'], { stdio: 'pipe' }).toString();
 
             if (!javaVersion.includes(`build ${this.javaVersionInfo.getJavaVersion()}.`)) {
                 return false;
@@ -150,9 +143,20 @@ export class NexusJava {
     }
 
     public getJavaPath(): string {
-        return path.resolve(this.getJavaInstallDirName(),
-            "bin",
-            `java${this.javaVersionInfo.getOsType() == OsType.LINUX ? "" : ".exe"}`);
+        return path.resolve(this.getJavaInstallDirName(), ...this.getJavaExecutableSubPath());
+    }
+
+    // Location of the java binary inside the extracted Azul archive, per OS
+    private getJavaExecutableSubPath(): string[] {
+        switch (this.javaVersionInfo.getOsType()) {
+            case OsType.WINDOWS:
+                return ["bin", "java.exe"];
+            case OsType.MACOS:
+                // Azul macOS archives use the bundle layout: <dir>/Contents/Home/bin/java
+                return ["Contents", "Home", "bin", "java"];
+            default:
+                return ["bin", "java"];
+        }
     }
 
     // Generate the path for the standart archive name
