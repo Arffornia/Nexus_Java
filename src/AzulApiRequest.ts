@@ -10,6 +10,7 @@ export class AzulApiRequest {
     private archiveUrl!: URL;
     private archiveFullName!: string;
     private javaHomeDirName!: string;
+    private sha256!: string;
 
     private constructor(javaVersionInfo: JavaVersionInfo) {
         this.javaVersionInfo = javaVersionInfo;
@@ -36,6 +37,33 @@ export class AzulApiRequest {
             `.${this.javaVersionInfo.getArchiveType()}`,
             ''
         );
+
+        this.sha256 = await this.resolveSha256(javaVersion);
+    }
+
+    /**
+     * Returns the SHA-256 published by Azul for the package. The list endpoint returns it when asked
+     * with `include_fields=sha256_hash`; otherwise fall back to the package detail endpoint.
+     */
+    private async resolveSha256(javaVersion: any): Promise<string> {
+        let sha256: unknown = javaVersion.sha256_hash;
+
+        if (!AzulApiRequest.isSha256(sha256) && javaVersion.package_uuid) {
+            const detail = await this.getJson(
+                `${AzulApiRequest.AZUL_ENDPOINT}${encodeURIComponent(javaVersion.package_uuid)}`
+            );
+            sha256 = detail?.sha256_hash;
+        }
+
+        if (!AzulApiRequest.isSha256(sha256)) {
+            throw new Error(`No valid sha256_hash published by Azul for ${javaVersion.name}`);
+        }
+
+        return sha256.toLowerCase();
+    }
+
+    private static isSha256(value: unknown): value is string {
+        return typeof value === 'string' && /^[0-9a-fA-F]{64}$/.test(value);
     }
 
     private getUserAgent(): string {
@@ -44,9 +72,11 @@ export class AzulApiRequest {
     }
 
     private async getAPIResponse(): Promise<any[]> {
-        try {
-            const requestUrl = this.buildRequestUrl().toString();
+        return await this.getJson(this.buildRequestUrl().toString()) as any[];
+    }
 
+    private async getJson(requestUrl: string): Promise<any> {
+        try {
             const response = await axios.get(requestUrl, {
                 headers: {
                     'User-Agent': this.getUserAgent(),
@@ -54,7 +84,7 @@ export class AzulApiRequest {
             });
 
             if (response.status === 200) {
-                return response.data as any[];
+                return response.data;
             } else {
                 throw new Error(`Failed to load JSON from URL. Response code: ${response.status}`);
             }
@@ -75,6 +105,7 @@ export class AzulApiRequest {
             archive_type: this.javaVersionInfo.getArchiveType(),
             page: '1',
             page_size: '1',
+            include_fields: 'sha256_hash',
         });
 
         return new URL(`${AzulApiRequest.AZUL_ENDPOINT}?${queryParams.toString()}`);
@@ -91,6 +122,11 @@ export class AzulApiRequest {
 
     public getArchiveFullName() {
         return this.archiveFullName;
+    }
+
+    /** Lower-case hex SHA-256 of the archive, as published by Azul. */
+    public getSha256(): string {
+        return this.sha256;
     }
 
     public getJavaHomeDirName(): string {

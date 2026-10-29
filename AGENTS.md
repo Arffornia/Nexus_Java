@@ -55,8 +55,9 @@ make build      # tsc && tsc-alias -> dist/
 ## Gotchas (from the 2026-10-29 audit)
 
 - `axios` is imported at runtime but declared as a devDependency (issue: declare it as a dependency).
-- No checksum on the downloaded archive, and a partial archive is reused because only existence is checked.
-  Azul's package detail endpoint returns `sha256_hash`.
+- Archives are verified against Azul's `sha256_hash` (list query uses `include_fields=sha256_hash`, with a
+  fallback to `GET /packages/{uuid}`) and downloaded to `<archive>.download` before an atomic rename.
+  Test fixtures must therefore provide a matching hash (`sha256OfFile()`).
 - `isJavaInstalled()` builds a shell command without quoting (breaks with spaces in the path).
 - Non-Linux OSes get `java.exe`; macOS archives keep the binary in `<dir>/Contents/Home/bin/java`.
 - Windows zips are extracted with `adm-zip` (advisories, no fix): replacement needs a decision.
