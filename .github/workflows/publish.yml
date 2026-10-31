@@ -1,7 +1,8 @@
 name: Publish to npm
 
 # Runs when the maintainer pushes a version tag (e.g. v1.1.0) on a commit of main.
-# Requires the repository secret NPM_TOKEN (npm automation/granular token with publish rights on @arffornia).
+# No secret: npm trusted publishing (OIDC). npm trusts this exact workflow file in this repo, configured once
+# by the owner on npmjs.com (see README "Release process"). Nothing is stored, nothing to rotate.
 
 on:
   push:
@@ -19,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write # required for npm provenance
+      id-token: write # OIDC identity for npm trusted publishing (and provenance)
     steps:
       - uses: actions/checkout@v5
 
@@ -27,6 +28,9 @@ jobs:
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
+
+      - name: npm 11.5.1+ (required for trusted publishing)
+        run: npm install -g npm@11.21.1
 
       - name: Check that the tag matches package.json
         run: |
@@ -44,5 +48,3 @@ jobs:
 
       - name: Publish with provenance
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
