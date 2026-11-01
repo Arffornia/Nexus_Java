@@ -1,7 +1,8 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { create } from 'tar';
+import crypto from "crypto";
+import { create } from "tar";
 
 /**
  * Helpers to run Nexus_Java tests fully offline.
@@ -61,4 +62,8 @@ export function fakeAxiosGet(packages: FakePackage[], files: Record<string, stri
         }
         throw new Error(`Unexpected network call in test: ${url}`);
     };
+}
+
+export function sha256OfFile(filePath: string): string {
+    return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
 }
