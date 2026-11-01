@@ -38,8 +38,10 @@ if (!nexusJava.isJavaInstalled()) {
 console.log('java binary: ' + nexusJava.getJavaPath());
 ```
 
-- `downloadAndExtract()` queries the Azul metadata API, downloads the archive (`.zip` on Windows, `.tar.gz` elsewhere),
-  extracts it to `<installPath>/java_<version>` and resolves with the path of the `java` binary.
+- `downloadAndExtract()` queries the Azul metadata API, downloads the archive (`.zip` on Windows, `.tar.gz` elsewhere)
+  to a temporary file, checks it against the SHA-256 published by Azul, then extracts it to
+  `<installPath>/java_<version>` and resolves with the path of the `java` binary. A checksum mismatch rejects with an
+  error and leaves nothing behind; an existing archive is reused only if its checksum matches.
 - `isJavaInstalled()` checks that the binary exists and that `java --version` reports the requested major version.
 - `getJavaPath()` returns the absolute path of the `java` binary (it does not check that it exists).
 - Progress steps: `FETCHING`, `DOWNLOADING`, `EXTRACTING`, `CLEANING`, `DONE`.
