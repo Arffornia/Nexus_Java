@@ -60,8 +60,19 @@ None. Everything is passed to the constructor. No environment variables are read
 
 ## Release process
 
-Releases are done by the maintainer: bump `version` in `package.json` in a PR, merge, then publish the merged
-commit to npm and tag it `v<version>`. Contributors never publish.
+Releases are done by the maintainer; contributors never publish.
+
+1. Bump `version` in `package.json` (and the lockfile: `npm version <x.y.z> --no-git-tag-version`) in a PR, merge it.
+2. Tag the merge commit on `main` and push the tag: `git tag v<x.y.z> && git push origin v<x.y.z>`.
+3. `.github/workflows/publish.yml` checks that the tag matches `package.json`, runs `make check` and runs
+   `npm publish --provenance`. No token: it uses npm **trusted publishing** (the workflow proves who it is to
+   npm with a short-lived GitHub OIDC identity; nothing is stored, nothing to rotate).
+
+One-time setup on npmjs.com (owner, per package): open https://www.npmjs.com/package/@arffornia/nexus_java/access ,
+section **Trusted Publisher** > **GitHub Actions**, and enter: organization or user `Arffornia`, repository
+`Nexus_Java`, workflow filename `publish.yml`, environment empty. Then delete any old `NPM_TOKEN` secret in the repo
+settings. A package that was never published needs one first manual `npm publish` before a trusted publisher can be
+attached.
 
 ## License
 
