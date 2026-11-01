@@ -38,8 +38,10 @@ if (!nexusJava.isJavaInstalled()) {
 console.log('java binary: ' + nexusJava.getJavaPath());
 ```
 
-- `downloadAndExtract()` queries the Azul metadata API, downloads the archive (`.zip` on Windows, `.tar.gz` elsewhere),
-  extracts it to `<installPath>/java_<version>` and resolves with the path of the `java` binary.
+- `downloadAndExtract()` queries the Azul metadata API, downloads the archive (`.zip` on Windows, `.tar.gz` elsewhere)
+  to a temporary file, checks it against the SHA-256 published by Azul, then extracts it to
+  `<installPath>/java_<version>` and resolves with the path of the `java` binary. A checksum mismatch rejects with an
+  error and leaves nothing behind; an existing archive is reused only if its checksum matches.
 - `isJavaInstalled()` checks that the binary exists and that `java --version` reports the requested major version.
 - `getJavaPath()` returns the absolute path of the `java` binary (it does not check that it exists).
 - Progress steps: `FETCHING`, `DOWNLOADING`, `EXTRACTING`, `CLEANING`, `DONE`.
@@ -60,8 +62,19 @@ None. Everything is passed to the constructor. No environment variables are read
 
 ## Release process
 
-Releases are done by the maintainer: bump `version` in `package.json` in a PR, merge, then publish the merged
-commit to npm and tag it `v<version>`. Contributors never publish.
+Releases are done by the maintainer; contributors never publish.
+
+1. Bump `version` in `package.json` (and the lockfile: `npm version <x.y.z> --no-git-tag-version`) in a PR, merge it.
+2. Tag the merge commit on `main` and push the tag: `git tag v<x.y.z> && git push origin v<x.y.z>`.
+3. `.github/workflows/publish.yml` checks that the tag matches `package.json`, runs `make check` and runs
+   `npm publish --provenance`. No token: it uses npm **trusted publishing** (the workflow proves who it is to
+   npm with a short-lived GitHub OIDC identity; nothing is stored, nothing to rotate).
+
+One-time setup on npmjs.com (owner, per package): open https://www.npmjs.com/package/@arffornia/nexus_java/access ,
+section **Trusted Publisher** > **GitHub Actions**, and enter: organization or user `Arffornia`, repository
+`Nexus_Java`, workflow filename `publish.yml`, environment empty. Then delete any old `NPM_TOKEN` secret in the repo
+settings. A package that was never published needs one first manual `npm publish` before a trusted publisher can be
+attached.
 
 ## License
 

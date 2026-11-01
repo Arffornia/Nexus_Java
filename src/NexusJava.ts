@@ -1,6 +1,8 @@
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
+import { pipeline } from 'stream/promises';
 import { execSync } from 'child_process';
 import AdmZip from 'adm-zip';
 import { extract } from 'tar';
@@ -39,15 +41,15 @@ export class NexusJava {
 
         this.callback?.onStep(Step.DOWNLOADING);
 
-        // If the archive doesn't exist, download it
+        const expectedSha256 = apiRequest.getSha256();
+
+        // Reuse an existing archive only if it is complete and intact
+        if (fs.existsSync(archivePath) && await NexusJava.sha256File(archivePath) !== expectedSha256) {
+            fs.rmSync(archivePath, { force: true });
+        }
+
         if (!fs.existsSync(archivePath)) {
-            const writer = fs.createWriteStream(archivePath);
-            const response = await axios.get(archiveUrl.toString(), { responseType: 'stream' });
-            response.data.pipe(writer);
-            await new Promise<void>((resolve, reject) => {
-                writer.on('finish', resolve);
-                writer.on('error', reject);
-            });
+            await this.downloadVerified(archiveUrl.toString(), archivePath, expectedSha256);
         }
 
         this.callback?.onStep(Step.EXTRACTING);
@@ -80,6 +82,41 @@ export class NexusJava {
 
         // Return the absolute path to the extracted Java directory
         return this.getJavaPath();
+    }
+
+    /**
+     * Downloads `url` to a temporary file next to `destination`, checks its SHA-256 and only then
+     * renames it to `destination`. On any failure the temporary file is removed and nothing is left
+     * at `destination`.
+     */
+    private async downloadVerified(url: string, destination: string, expectedSha256: string): Promise<void> {
+        const tmpPath = `${destination}.download`;
+        fs.rmSync(tmpPath, { force: true });
+
+        try {
+            const hash = crypto.createHash('sha256');
+            const response = await axios.get(url, { responseType: 'stream' });
+            response.data.on('data', (chunk: Buffer) => hash.update(chunk));
+            await pipeline(response.data, fs.createWriteStream(tmpPath));
+
+            const actualSha256 = hash.digest('hex');
+            if (actualSha256 !== expectedSha256) {
+                throw new Error(`Checksum mismatch for ${url}: expected sha256 ${expectedSha256}, got ${actualSha256}`);
+            }
+
+            fs.renameSync(tmpPath, destination);
+        } catch (error) {
+            fs.rmSync(tmpPath, { force: true });
+            throw error;
+        }
+    }
+
+    private static async sha256File(filePath: string): Promise<string> {
+        const hash = crypto.createHash('sha256');
+        for await (const chunk of fs.createReadStream(filePath)) {
+            hash.update(chunk as Buffer);
+        }
+        return hash.digest('hex');
     }
 
     public isJavaInstalled(): boolean {
