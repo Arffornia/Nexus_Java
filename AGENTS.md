@@ -58,8 +58,9 @@ make build      # tsc && tsc-alias -> dist/
 - Archives are verified against Azul's `sha256_hash` (list query uses `include_fields=sha256_hash`, with a
   fallback to `GET /packages/{uuid}`) and downloaded to `<archive>.download` before an atomic rename.
   Test fixtures must therefore provide a matching hash (`sha256OfFile()`).
-- `isJavaInstalled()` builds a shell command without quoting (breaks with spaces in the path).
-- Non-Linux OSes get `java.exe`; macOS archives keep the binary in `<dir>/Contents/Home/bin/java`.
+- Binary location differs per OS: `bin/java.exe` (Windows), `Contents/Home/bin/java` (macOS bundle layout),
+  `bin/java` otherwise. `getJavaPath()` is the single source of truth; `isJavaInstalled()` runs it with
+  `execFileSync` (no shell), so never build shell strings from paths.
 - Windows zips are extracted with `adm-zip` (advisories, no fix): replacement needs a decision.
 
 ## Related repos
